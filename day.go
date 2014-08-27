@@ -3,11 +3,11 @@ package main
 import "time"
 
 type Day struct {
-	Blocks []TimeBlock
+	Blocks []*TimeBlock
 }
 
 func NewDay() *Day {
-	return &Day{Blocks: make([]TimeBlock, 0)}
+	return &Day{Blocks: make([]*TimeBlock, 0)}
 }
 
 func (day *Day) TimeWorked() time.Duration {
@@ -19,5 +19,5 @@ func (day *Day) TimeWorked() time.Duration {
 }
 
 func (day *Day) AddTimeBlock(b *TimeBlock) {
-	day.Blocks = append(day.Blocks, *b)
+	day.Blocks = append(day.Blocks, b)
 }
