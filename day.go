@@ -4,10 +4,14 @@ import "time"
 
 type Day struct {
 	Blocks []*TimeBlock
+	dotw   int
 }
 
-func NewDay() *Day {
-	return &Day{Blocks: make([]*TimeBlock, 0)}
+func NewDay(dotw int) *Day {
+	return &Day{
+		Blocks: make([]*TimeBlock, 0),
+		dotw:   dotw,
+	}
 }
 
 func (day *Day) TimeWorked() time.Duration {

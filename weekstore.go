@@ -71,14 +71,18 @@ func (ws *WeekStore) SaveWeeks() error {
 	return nil
 }
 
-func (ws *WeekStore) Get(year, week int) *Week {
-	return ws.weeks[year*34 + week]
+func (ws *WeekStore) Get(year, week int) (*Week, error) {
+	if w, present := ws.weeks[year*34+week]; present {
+		return w, nil
+	} else {
+		return nil, errors.New("The requested week does not exist in the store.")
+	}
 }
 
 func (ws *WeekStore) Put(week *Week) error {
-	if _,present := ws.weeks[week.Year*34 + week.WeekNum]; present {
+	if _, present := ws.weeks[week.Year*34+week.WeekNum]; present {
 		return errors.New("There is already a value in the week store with the provided key.")
 	}
-	ws.weeks[week.Year*34 + week.WeekNum] = week
+	ws.weeks[week.Year*34+week.WeekNum] = week
 	return nil
 }
