@@ -4,13 +4,13 @@ import "time"
 
 type Day struct {
 	Blocks []*TimeBlock
-	dotw   int
+	Dotw   int
 }
 
 func NewDay(dotw int) *Day {
 	return &Day{
 		Blocks: make([]*TimeBlock, 0),
-		dotw:   dotw,
+		Dotw:   dotw,
 	}
 }
 

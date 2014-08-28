@@ -21,6 +21,8 @@ func main() {
 	println(timeClock.TimeToday())
 	println(timeClock.TimeThisWeek())
 
+	println(timeClock.JSONWeek(time.Now().ISOWeek()))
+
 	http.Handle("/", http.FileServer(http.Dir("htdocs")))
 	http.HandleFunc("/in/", handleIn)
 	http.HandleFunc("/out/", handleOut)

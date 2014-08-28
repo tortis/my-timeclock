@@ -1,6 +1,7 @@
 package main
 
 import "time"
+import "encoding/json"
 
 const (
 	STOREFILE = "weeks.gob"
@@ -63,6 +64,24 @@ func (c *TimeClock) TimeToday() time.Duration {
 	} else {
 		c.store.Put(NewWeek())
 		return 0
+	}
+}
+
+func (c *TimeClock) JSONWeek(year, week int) string {
+	if w, err := c.store.Get(year, week); err == nil {
+		if jbyte, err := json.Marshal(w); err == nil {
+			return string(jbyte)
+		} else {
+			return ""
+		}
+	} else {
+		c.store.Put(NewWeek())
+		w, _ = c.store.Get(year, week)
+		if jbyte, err := json.Marshal(w); err == nil {
+			return string(jbyte)
+		} else {
+			return ""
+		}
 	}
 }
 
