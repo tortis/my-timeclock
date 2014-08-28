@@ -5,12 +5,14 @@ import "time"
 type Day struct {
 	Blocks []*TimeBlock
 	Dotw   int
+	Hours  float64
 }
 
 func NewDay(dotw int) *Day {
 	return &Day{
 		Blocks: make([]*TimeBlock, 0),
 		Dotw:   dotw,
+		Hours:  0.0,
 	}
 }
 
@@ -24,4 +26,5 @@ func (day *Day) TimeWorked() time.Duration {
 
 func (day *Day) AddTimeBlock(b *TimeBlock) {
 	day.Blocks = append(day.Blocks, b)
+	day.Hours = day.TimeWorked().Hours()
 }

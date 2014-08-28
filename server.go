@@ -3,7 +3,6 @@ package main
 import "net/http"
 import "fmt"
 import "log"
-import "time"
 import "strconv"
 import "os"
 import "os/signal"
@@ -57,14 +56,6 @@ func handleWeek(w http.ResponseWriter, req *http.Request) {
 }
 
 func main() {
-	timeClock.ClockIn()
-	time.Sleep(time.Second * 10)
-	timeClock.ClockOut()
-	println(timeClock.TimeToday())
-	println(timeClock.TimeThisWeek())
-
-	println(timeClock.GetWeek(time.Now().ISOWeek()).ToJSON())
-
 	http.Handle("/", http.FileServer(http.Dir("htdocs")))
 	http.HandleFunc("/in/", handleIn)
 	http.HandleFunc("/out/", handleOut)
