@@ -1,7 +1,6 @@
 package main
 
 import "time"
-import "encoding/json"
 
 const (
 	STOREFILE = "weeks.gob"
@@ -20,29 +19,33 @@ func NewTimeClock() *TimeClock {
 	}
 }
 
-func (c *TimeClock) ClockIn() {
-	if _, err := c.store.Get(time.Now().ISOWeek()); err == nil {
-		if !c.onClock {
-			c.block = NewTimeBlock()
-			c.onClock = true
-		}
+func (c *TimeClock) ClockIn() bool {
+	if c.onClock {
+		return false
 	} else {
-		c.store.Put(NewWeek())
-		println("Adding this week to week store.")
-		if !c.onClock {
+		if _, err := c.store.Get(time.Now().ISOWeek()); err == nil {
+			c.block = NewTimeBlock()
+			c.onClock = true
+		} else {
+			c.store.Put(NewWeek())
+			println("Adding this week to week store.")
 			c.block = NewTimeBlock()
 			c.onClock = true
 		}
+		return true
 	}
+
 }
 
-func (c *TimeClock) ClockOut() {
+func (c *TimeClock) ClockOut() bool {
 	if c.onClock {
 		c.block.End()
 		week, _ := c.store.Get(time.Now().ISOWeek())
 		week.Today().AddTimeBlock(c.block)
-		c.store.SaveWeeks()
+		c.onClock = false
+		return true
 	}
+	return false
 }
 
 func (c *TimeClock) TimeThisWeek() time.Duration {
@@ -67,29 +70,11 @@ func (c *TimeClock) TimeToday() time.Duration {
 	}
 }
 
-func (c *TimeClock) JSONWeek(year, week int) string {
-	if w, err := c.store.Get(year, week); err == nil {
-		if jbyte, err := json.Marshal(w); err == nil {
-			return string(jbyte)
-		} else {
-			return ""
-		}
-	} else {
-		c.store.Put(NewWeek())
-		w, _ = c.store.Get(year, week)
-		if jbyte, err := json.Marshal(w); err == nil {
-			return string(jbyte)
-		} else {
-			return ""
-		}
-	}
-}
-
 func (c *TimeClock) GetWeek(year, week int) *Week {
 	if w, err := c.store.Get(year, week); err == nil {
 		return w
 	} else {
-		c.store.Put(NewWeek())
+		c.store.Put(NewSpecificWeek(year, week))
 		w, _ = c.store.Get(year, week)
 		return w
 	}

@@ -5,6 +5,7 @@ import "encoding/gob"
 import "io"
 import "log"
 import "errors"
+import "strconv"
 
 type WeekStore struct {
 	// The integer key to get a Week is (year*54+ISOWeek)
@@ -25,6 +26,7 @@ func NewWeekStore(fname string) *WeekStore {
 	if r.LoadWeeks() != nil {
 		println("Could not load data from given weekstore. Proceeding with empty store.")
 	}
+	println("Loaded " + strconv.Itoa(len(r.weeks)) + " weeks from file.")
 	return r
 }
 
