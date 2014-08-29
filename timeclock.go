@@ -54,7 +54,7 @@ func (c *TimeClock) TimeThisWeek() time.Duration {
 		for _, day := range week.Days {
 			r += day.TimeWorked()
 		}
-		return r
+		return r + c.block.GetDuration()
 	} else {
 		c.store.Put(NewWeek())
 		return 0
@@ -63,7 +63,7 @@ func (c *TimeClock) TimeThisWeek() time.Duration {
 
 func (c *TimeClock) TimeToday() time.Duration {
 	if week, err := c.store.Get(time.Now().ISOWeek()); err == nil {
-		return week.Today().TimeWorked()
+		return week.Today().TimeWorked() + c.block.GetDuration()
 	} else {
 		c.store.Put(NewWeek())
 		return 0

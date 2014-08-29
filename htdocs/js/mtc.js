@@ -76,14 +76,14 @@ window.onload = function () {
 			clockOut(function (s) {
 				if (s) {
 					state = false;
-					$("#clk").text("Clock In");
+					$("#clk").text("Clock In").css("border-color", "green").css("color", "green");
 				}
 			});
 		} else {
 			clockIn(function (s) {
 				if (s) {
 					state = true;
-					$("#clk").text("Clock Out");
+					$("#clk").text("Clock Out").css("border-color", "red").css("color", "red");
 				}
 
 			});
@@ -92,12 +92,17 @@ window.onload = function () {
 	getStatus(function (s) {
 		state = s;
 		if (s) {
-			$("#clk").text("Clock Out");
+			$("#clk").text("Clock Out").css("border-color", "red").css("color", "red");
 		} else {
-			$("#clk").text("Clock In");
+			$("#clk").text("Clock In").css("border-color", "green").css("color", "green");
 		}
 	});
 	getWeek(Date.now(), function (week) {
 		$("#tt").html(weekToHTML(week));
+	});
+	var oneWeekAgo = new Date();
+	oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+	getWeek(oneWeekAgo, function (week) {
+		$("#lw").html(weekToHTML(week));
 	});
 }
