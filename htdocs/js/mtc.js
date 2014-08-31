@@ -2,15 +2,6 @@ var onClock = false;
 var timeOn = 0;
 var timer;
 
-function getWeekNumber(d) {
-	d = new Date(+d);
-	d.setHours(0,0,0);
-	d.setDate(d.getDate() + 4 - (d.getDay()||7));
-	var yearStart = new Date(d.getFullYear(),0,1);
-	var weekNo = Math.ceil(( ( (d - yearStart) / 86400000) + 1)/7)
-	return [d.getFullYear(), weekNo];
-}
-
 function getStatus(cb) {
 	var req = new XMLHttpRequest();
 	req.open("GET", "/status/", true);
@@ -53,7 +44,6 @@ function clockOut(cb) {
 }
 
 function getWeek(d, cb) {
-	var ISOWeek = getWeekNumber(d);
 	var req = new XMLHttpRequest();
 	req.open("GET", "/week/?year="+ d.getFullYear()  +"&month="+ (d.getMonth() + 1) +"&day="+ d.getDate(), true);
 	req.send();
