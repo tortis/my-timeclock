@@ -55,16 +55,12 @@ function clockOut(cb) {
 function getWeek(d, cb) {
 	var ISOWeek = getWeekNumber(d);
 	var req = new XMLHttpRequest();
-	req.open("GET", "/week/?year="+ISOWeek[0]+"&week="+ISOWeek[1], true);
+	req.open("GET", "/week/?year="+ d.getFullYear()  +"&month="+ (d.getMonth() + 1) +"&day="+ d.getDate(), true);
 	req.send();
 	req.onload = function () {
 		var w = JSON.parse(req.responseText);
-		if (w.Year == ISOWeek[0] && w.WeekNum == ISOWeek[1]) {
-			cb(w);
-		} else {
-			console.log("JSON Parse failed.");
-			cb(null);
-		}
+		w.Monday = new Date(w.MondayDate);
+		cb(w);
 	};
 }
 
@@ -100,17 +96,17 @@ function updateStatus() {
 }
 
 function updateWeeks() {
-	getWeek(Date.now(), function (week) {
+	getWeek(new Date(), function (week) {
 		$("#tw").html(weekToHTML(week));
 		$("#twhrs").text(week.Hours.toFixed(1) + " Hrs");
-		$("#twdate").text(week.WeekNum+" "+week.Year);
+		$("#twdate").text(week.Monday.toLocaleDateString());
 	});
 	var oneWeekAgo = new Date();
 	oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
 	getWeek(oneWeekAgo, function (week) {
 		$("#lw").html(weekToHTML(week));
 		$("#lwhrs").text(week.Hours.toFixed(1) + " Hrs");
-		$("#lwdate").text(week.WeekNum+" "+week.Year);
+		$("#lwdate").text(week.Monday.toLocaleDateString());
 	});
 
 }

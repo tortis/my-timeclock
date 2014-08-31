@@ -23,7 +23,7 @@ func (c *TimeClock) ClockIn() bool {
 	if c.onClock {
 		return false
 	} else {
-		if _, err := c.store.Get(time.Now().ISOWeek()); err == nil {
+		if _, err := c.store.Get(time.Now()); err == nil {
 			c.block = NewTimeBlock()
 			c.onClock = true
 		} else {
@@ -40,7 +40,7 @@ func (c *TimeClock) ClockIn() bool {
 func (c *TimeClock) ClockOut() bool {
 	if c.onClock {
 		c.block.End()
-		week, _ := c.store.Get(time.Now().ISOWeek())
+		week, _ := c.store.Get(time.Now())
 		week.Today().AddTimeBlock(c.block)
 		c.onClock = false
 		return true
@@ -49,7 +49,7 @@ func (c *TimeClock) ClockOut() bool {
 }
 
 func (c *TimeClock) TimeThisWeek() time.Duration {
-	if week, err := c.store.Get(time.Now().ISOWeek()); err == nil {
+	if week, err := c.store.Get(time.Now()); err == nil {
 		var r time.Duration = 0
 		for _, day := range week.Days {
 			r += day.TimeWorked()
@@ -62,7 +62,7 @@ func (c *TimeClock) TimeThisWeek() time.Duration {
 }
 
 func (c *TimeClock) TimeToday() time.Duration {
-	if week, err := c.store.Get(time.Now().ISOWeek()); err == nil {
+	if week, err := c.store.Get(time.Now()); err == nil {
 		return week.Today().TimeWorked() + c.block.GetDuration()
 	} else {
 		c.store.Put(NewWeek())
@@ -78,12 +78,12 @@ func (c *TimeClock) TimeOn() time.Duration {
 	}
 }
 
-func (c *TimeClock) GetWeek(year, week int) *Week {
-	if w, err := c.store.Get(year, week); err == nil {
+func (c *TimeClock) GetWeek(t time.Time) *Week {
+	if w, err := c.store.Get(t); err == nil {
 		return w
 	} else {
-		c.store.Put(NewSpecificWeek(year, week))
-		w, _ = c.store.Get(year, week)
+		c.store.Put(NewSpecificWeek(t))
+		w, _ = c.store.Get(t)
 		return w
 	}
 }

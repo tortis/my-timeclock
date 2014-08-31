@@ -8,10 +8,10 @@ type Day struct {
 	Hours  float64
 }
 
-func NewDay(dotw int) *Day {
+func NewDay(d int) *Day {
 	return &Day{
 		Blocks: make([]*TimeBlock, 0),
-		Dotw:   dotw,
+		Dotw:   d,
 		Hours:  0.0,
 	}
 }

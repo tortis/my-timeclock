@@ -4,19 +4,18 @@ import "time"
 import "encoding/json"
 
 type Week struct {
-	Year    int
-	WeekNum int
-	Days    []*Day
-	Hours   float64
+	MondayDate time.Time
+	Days       []*Day
+	Hours      float64
 }
 
 func NewWeek() *Week {
-	year, week := time.Now().ISOWeek()
+	now := time.Now()
+	monday := now.AddDate(0, 0, 1-int(now.Weekday()))
 	r := &Week{
-		Year:    year,
-		WeekNum: week,
-		Days:    make([]*Day, 7),
-		Hours:   0.0,
+		MondayDate: monday,
+		Days:       make([]*Day, 7),
+		Hours:      0.0,
 	}
 	for i := 0; i < 7; i++ {
 		r.Days[i] = NewDay(i)
@@ -24,21 +23,17 @@ func NewWeek() *Week {
 	return r
 }
 
-func NewSpecificWeek(year, week int) *Week {
+func NewSpecificWeek(t time.Time) *Week {
+	monday := t.AddDate(0, 0, 1-int(t.Weekday()))
 	r := &Week{
-		Year:    year,
-		WeekNum: week,
-		Days:    make([]*Day, 7),
-		Hours:   0.0,
+		MondayDate: monday,
+		Days:       make([]*Day, 7),
+		Hours:      0.0,
 	}
 	for i := 0; i < 7; i++ {
 		r.Days[i] = NewDay(i)
 	}
 	return r
-}
-
-func (w *Week) Set(dayOfWeek time.Weekday, day *Day) {
-	w.Days[dayOfWeek] = day
 }
 
 func (w *Week) Today() *Day {
@@ -61,4 +56,8 @@ func (w *Week) ToJSON() string {
 	} else {
 		return ""
 	}
+}
+
+func (w *Week) weekKey() int {
+	return w.MondayDate.Year() + int(w.MondayDate.Month())*3000 + (1+w.MondayDate.Day())*37000
 }

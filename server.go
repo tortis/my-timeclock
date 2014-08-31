@@ -7,6 +7,7 @@ import "strconv"
 import "os"
 import "os/signal"
 import "encoding/json"
+import "time"
 
 var timeClock *TimeClock
 
@@ -43,7 +44,7 @@ func handleOut(w http.ResponseWriter, req *http.Request) {
 }
 
 func handleStatus(w http.ResponseWriter, req *http.Request) {
-	jbyte, err := json.Marshal(Status{OnClock:timeClock.onClock, TimeOn:timeClock.TimeOn().Hours()})
+	jbyte, err := json.Marshal(Status{OnClock: timeClock.onClock, TimeOn: timeClock.TimeOn().Hours()})
 	println(string(jbyte))
 	if err == nil {
 		w.Write(jbyte)
@@ -54,8 +55,10 @@ func handleStatus(w http.ResponseWriter, req *http.Request) {
 
 func handleWeek(w http.ResponseWriter, req *http.Request) {
 	year, _ := strconv.Atoi(req.FormValue("year"))
-	week, _ := strconv.Atoi(req.FormValue("week"))
-	fmt.Fprintf(w, timeClock.GetWeek(year, week).ToJSON())
+	m, _ := strconv.Atoi(req.FormValue("month"))
+	month := time.Month(m)
+	day, _ := strconv.Atoi(req.FormValue("day"))
+	fmt.Fprintf(w, timeClock.GetWeek(time.Date(year, month, day, 0, 0, 0, 0, time.Now().Location())).ToJSON())
 }
 
 func main() {

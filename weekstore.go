@@ -5,16 +5,12 @@ import "encoding/gob"
 import "log"
 import "errors"
 import "strconv"
+import "time"
 
 type WeekStore struct {
-	// The integer key to get a Week is (year*54+ISOWeek)
+	// The integer key to get a Week is (year + month(1-12) * 3000 + day(1-31) * 37000)
 	weeks map[int]*Week
 	fname string
-}
-
-type weekRecord struct {
-	Key   int
-	Value *Week
 }
 
 func NewWeekStore(fname string) *WeekStore {
@@ -63,8 +59,10 @@ func (ws *WeekStore) SaveWeeks() error {
 	return nil
 }
 
-func (ws *WeekStore) Get(year, week int) (*Week, error) {
-	if w, present := ws.weeks[year*34+week]; present {
+func (ws *WeekStore) Get(t time.Time) (*Week, error) {
+	// Convert the given time to Monday
+	m := t.AddDate(0, 0, 1-int(t.Weekday()))
+	if w, present := ws.weeks[m.Year()+int(m.Month())*3000+(1+m.Day())*37000]; present {
 		return w, nil
 	} else {
 		return nil, errors.New("The requested week does not exist in the store.")
@@ -72,9 +70,9 @@ func (ws *WeekStore) Get(year, week int) (*Week, error) {
 }
 
 func (ws *WeekStore) Put(week *Week) error {
-	if _, present := ws.weeks[week.Year*34+week.WeekNum]; present {
+	if _, present := ws.weeks[week.weekKey()]; present {
 		return errors.New("There is already a value in the week store with the provided key.")
 	}
-	ws.weeks[week.Year*34+week.WeekNum] = week
+	ws.weeks[week.weekKey()] = week
 	return nil
 }
