@@ -1,5 +1,31 @@
-#clk {
-	transition: all 0.5s;
-	border-color: green;
-	color: green;
+#content {
+	margin: 10px 25px 0 25px;
+}
+
+.caps {
+	font-size: 12px;
+	font-weight: 700;
+	color: #959595;
+	text-transform: uppercase;
+	letter-spacing: 1px;
+}
+
+#timeon {
+	margin-left: 20px;
+}
+
+#lwhrs {
+	float: right;
+}
+
+#twhrs {
+	float: right;
+}
+
+#twdate {
+	margin-left: 20px;
+}
+
+#lwdate {
+	margin-left: 20px;
 }

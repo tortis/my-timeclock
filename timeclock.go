@@ -70,6 +70,14 @@ func (c *TimeClock) TimeToday() time.Duration {
 	}
 }
 
+func (c *TimeClock) TimeOn() time.Duration {
+	if c.onClock {
+		return c.block.GetDuration()
+	} else {
+		return 0
+	}
+}
+
 func (c *TimeClock) GetWeek(year, week int) *Week {
 	if w, err := c.store.Get(year, week); err == nil {
 		return w

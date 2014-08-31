@@ -6,6 +6,7 @@ import "log"
 import "strconv"
 import "os"
 import "os/signal"
+import "encoding/json"
 
 var timeClock *TimeClock
 
@@ -42,10 +43,12 @@ func handleOut(w http.ResponseWriter, req *http.Request) {
 }
 
 func handleStatus(w http.ResponseWriter, req *http.Request) {
-	if timeClock.onClock {
-		fmt.Fprintf(w, "true")
+	jbyte, err := json.Marshal(Status{OnClock:timeClock.onClock, TimeOn:timeClock.TimeOn().Hours()})
+	println(string(jbyte))
+	if err == nil {
+		w.Write(jbyte)
 	} else {
-		fmt.Fprintf(w, "false")
+		fmt.Fprintf(w, "error")
 	}
 }
 

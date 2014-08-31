@@ -2,17 +2,38 @@
 <html>
 <head>
 	<title>My Timeclock</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="stylesheet" type="text/css" href="/css/bootstrap.min.css">
 	<link rel="stylesheet" type="text/css" href="/css/main.css">
-	<script src="/js/jquery-2.1.1.min.js"></script>
-	<script src="/js/mtc.js"></script>
 </head>
-
 <body>
-	<p>Last Week</p>
-	<div id="lw"></div>
-	<p>This Week</p>
-	<div id="tt"></div>
-	<button id="clk">Clock In</button>
+	<script src="/js/jquery-2.1.1.min.js"></script>
+	<script src="/js/bootstrap.min.js"></script>
+	<script src="/js/mtc.js"></script>
+	<div id="content">
+		<div class="panel panel-default">
+			<div class="panel-heading">
+				<span>Last Week</span>
+				<span id="lwdate" class="caps"></span>
+				<span id="lwhrs" class="caps"></span>
+			</div>
+			<!--<div class="panel-body">Details</div>-->
+			<table id="lw" class="table"></table>
+		</div>
+		<div class="panel panel-default">
+			<div class="panel-heading">
+				<span>This Week</span>
+				<span id="twdate" class="caps"></span>
+				<span id="twhrs" class="caps"></span>
+			</div>
+			<!--<div class="panel-body">Details</div>-->
+			<table id="tw" class="table"></table>
+		</div>
+		<button type="button" id="clk" class="btn btn-success">Clock In</button><span id="timeon"></span>
+		<div id="detail" class="panel">
+
+		</div>
+	</div>
 </body>
 
 </html>

@@ -1,4 +1,6 @@
-var state = false;
+var onClock = false;
+var timeOn = 0;
+var timer;
 
 function getWeekNumber(d) {
 	d = new Date(+d);
@@ -14,10 +16,11 @@ function getStatus(cb) {
 	req.open("GET", "/status/", true);
 	req.send();
 	req.onload = function () {
-		if (req.responseText == "true") {
-			cb(true);
+		var response = JSON.parse(req.responseText);
+		if (response.OnClock) {
+			cb(true, response.TimeOn);
 		} else {
-			cb(false);
+			cb(false, 0);
 		}
 	};
 }
@@ -66,43 +69,72 @@ function getWeek(d, cb) {
 }
 
 function weekToHTML(week) {
-	var html = '<table><tr><td>Monday</td><td>Tuesday</td><td>Wednesday</td><td>Thursday</td><td>Friday</td></tr><tr><td>'+week.Days[1].Hours.toFixed(1)+'</td><td>'+week.Days[2].Hours.toFixed(1)+'</td><td>'+week.Days[3].Hours.toFixed(1)+'</td><td>'+week.Days[4].Hours.toFixed(1)+'</td><td>'+week.Days[5].Hours.toFixed(1)+'</td></tr></table>';
+	var html = '<tr><td>Sun</td><td>Mon</td><td>Tues</td><td>Wed</td><td>Thur</td><td>Fri</td><td>Sat</td></tr><tr><td>'+week.Days[0].Hours.toFixed(1)+'</td><td>'+week.Days[1].Hours.toFixed(1)+'</td><td>'+week.Days[2].Hours.toFixed(1)+'</td><td>'+week.Days[3].Hours.toFixed(1)+'</td><td>'+week.Days[4].Hours.toFixed(1)+'</td><td>'+week.Days[5].Hours.toFixed(1)+'</td><td>'+week.Days[6].Hours.toFixed(1)+'</td></tr>';
 	return html;
 }
 
-window.onload = function () {
-	$("#clk").click(function () {
-		if (state) {
-			clockOut(function (s) {
-				if (s) {
-					state = false;
-					$("#clk").text("Clock In").css("border-color", "green").css("color", "green");
-				}
-			});
-		} else {
-			clockIn(function (s) {
-				if (s) {
-					state = true;
-					$("#clk").text("Clock Out").css("border-color", "red").css("color", "red");
-				}
+function updateTime() {
+	timeOn += 0.1;
+	$("#timeon").text(timeOn.toFixed(1) + " hrs");
+}
 
-			});
-		}
+function buttonUpdate(s, timeon) {
+	if (s) {
+		timeOn = timeon;
+		timer = setInterval(updateTime, 1000*60*6);
+		$("#clk").text("Clock Out").removeClass("btn-success").addClass("btn-danger");
+		$("#timeon").text(timeOn.toFixed(1) + " hrs");
+	} else {
+		timeOn = 0;
+		clearInterval(timer);
+		$("#clk").text("Clock In").removeClass("btn-danger").addClass("btn-success");
+		$("#timeon").empty();
+	}
+}
+
+function updateStatus() {
+	getStatus(function (s, timeon) {
+		onClock = s;
+		buttonUpdate(s, timeon);
 	});
-	getStatus(function (s) {
-		state = s;
-		if (s) {
-			$("#clk").text("Clock Out").css("border-color", "red").css("color", "red");
-		} else {
-			$("#clk").text("Clock In").css("border-color", "green").css("color", "green");
-		}
-	});
+}
+
+function updateWeeks() {
 	getWeek(Date.now(), function (week) {
-		$("#tt").html(weekToHTML(week));
+		$("#tw").html(weekToHTML(week));
+		$("#twhrs").text(week.Hours.toFixed(1) + " Hrs");
+		$("#twdate").text(week.WeekNum+" "+week.Year);
 	});
 	var oneWeekAgo = new Date();
 	oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
 	getWeek(oneWeekAgo, function (week) {
 		$("#lw").html(weekToHTML(week));
+		$("#lwhrs").text(week.Hours.toFixed(1) + " Hrs");
+		$("#lwdate").text(week.WeekNum+" "+week.Year);
 	});
+
+}
+
+window.onload = function () {
+	$("#clk").click(function () {
+		if (onClock) {
+			clockOut(function (s) {
+				if (s) {
+					onClock = false;
+					buttonUpdate(onClock, 0);
+					updateWeeks();
+				}
+			});
+		} else {
+			clockIn(function (s) {
+				if (s) {
+					onClock = true;
+					buttonUpdate(onClock, 0);
+				}
+
+			});
+		}
+	});
+	updateStatus();
+	updateWeeks();
 }

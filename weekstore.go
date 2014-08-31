@@ -2,7 +2,6 @@ package main
 
 import "os"
 import "encoding/gob"
-import "io"
 import "log"
 import "errors"
 import "strconv"
@@ -23,8 +22,8 @@ func NewWeekStore(fname string) *WeekStore {
 		weeks: make(map[int]*Week),
 		fname: fname,
 	}
-	if r.LoadWeeks() != nil {
-		println("Could not load data from given weekstore. Proceeding with empty store.")
+	if err := r.LoadWeeks(); err != nil {
+		println("Could not load data from given weekstore. Proceeding with empty store.", err)
 	}
 	println("Loaded " + strconv.Itoa(len(r.weeks)) + " weeks from file.")
 	return r
@@ -42,18 +41,10 @@ func (ws *WeekStore) LoadWeeks() error {
 	}
 
 	d := gob.NewDecoder(f)
-	err = nil
-	for err == nil {
-		var r weekRecord
-		if err = d.Decode(&r); err == nil {
-			ws.weeks[r.Key] = r.Value
-		}
+	if err = d.Decode(&ws.weeks); err != nil {
+		return err
 	}
-	if err == io.EOF {
-		return nil
-	}
-
-	return err
+	return nil
 }
 
 func (ws *WeekStore) SaveWeeks() error {
@@ -64,11 +55,10 @@ func (ws *WeekStore) SaveWeeks() error {
 	}
 	defer f.Close()
 	e := gob.NewEncoder(f)
-	for k, v := range ws.weeks {
-		err := e.Encode(weekRecord{Key: k, Value: v})
-		if err != nil {
-			log.Println("Failed to save a week record to the store. Some data may havve been lost.", err)
-		}
+	err = e.Encode(ws.weeks)
+	if err != nil {
+		log.Println("Falied to save week records to the store. Some data may have been lost.", err)
+		return err
 	}
 	return nil
 }
