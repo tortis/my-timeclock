@@ -2,6 +2,15 @@ var onClock = false;
 var timeOn = 0;
 var timer;
 
+var weekday = new Array(7);
+weekday[0]=  "Sunday";
+weekday[1] = "Monday";
+weekday[2] = "Tuesday";
+weekday[3] = "Wednesday";
+weekday[4] = "Thursday";
+weekday[5] = "Friday";
+weekday[6] = "Saturday";
+
 function getStatus(cb) {
 	var req = new XMLHttpRequest();
 	req.open("GET", "/status/", true);
@@ -59,6 +68,36 @@ function weekToHTML(week) {
 	return html;
 }
 
+function getBlocks(day) {
+	var r = $("<div>").addClass("panel-content").addClass("list-group");
+	for (var i = 0; i < day.Blocks.length; i++) {
+		var tin = new Date(day.Blocks[i].In);
+		var tout = new Date(day.Blocks[i].Out);
+		r.append($("<div>").addClass("list-group-item").append(
+			$("<span>").addClass("left").append(
+				$("<span>").addClass("caps").text("IN ")).append(
+				$("<span>").text(tin.toLocaleTimeString()))).append(
+			$("<span>").addClass("right").append(
+				$("<span>").addClass("caps").text("OUT ")).append(
+				$("<span>").text(tout.toLocaleTimeString()))));
+	}
+	return r;
+}
+
+function updateDetails(week) {
+	$("#details").empty();
+	var dotw = (new Date()).getDay();
+	for (;dotw >= 0; dotw--) {
+		if (week.Days[dotw].Blocks == null) {
+			continue;
+		}
+		$("#details").append(
+			$("<div>").addClass("panel").addClass("panel-default").addClass("detail").append(
+				$("<div>").addClass("panel-heading").text(weekday[dotw])).append(getBlocks(week.Days[dotw])));
+	}
+	
+}
+
 function updateTime() {
 	timeOn += 0.1;
 	$("#timeon").text(timeOn.toFixed(1) + " hrs");
@@ -90,6 +129,7 @@ function updateWeeks() {
 		$("#tw").html(weekToHTML(week));
 		$("#twhrs").text(week.Hours.toFixed(1) + " Hrs");
 		$("#twdate").text(week.Monday.toLocaleDateString());
+		updateDetails(week);
 	});
 	var oneWeekAgo = new Date();
 	oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);

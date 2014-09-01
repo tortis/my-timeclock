@@ -18,6 +18,14 @@
 	float: right;
 }
 
+.left {
+}
+
+.right {
+	position: absolute;
+	right: 15px;
+}
+
 #twhrs {
 	float: right;
 }
@@ -28,4 +36,22 @@
 
 #lwdate {
 	margin-left: 20px;
+}
+
+#details {
+	margin-top: 100px;
+}
+
+.detail {
+	display: inline-block;
+	width: 45%;
+	margin-top: 20px;
+	margin-right: 20px;
+}
+
+@media only screen
+and (max-width : 575px) {
+	.detail {
+		width: 100%;
+	}
 }
