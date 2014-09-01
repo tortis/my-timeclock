@@ -77,7 +77,7 @@ function getBlocks(day) {
 			$("<span>").addClass("left").append(
 				$("<span>").addClass("caps").text("IN ")).append(
 				$("<span>").text(tin.toLocaleTimeString()))).append(
-			$("<span>").addClass("right").append(
+			$("<span>").addClass("pull-right").append(
 				$("<span>").addClass("caps").text("OUT ")).append(
 				$("<span>").text(tout.toLocaleTimeString()))));
 	}
