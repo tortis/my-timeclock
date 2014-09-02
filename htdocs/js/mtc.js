@@ -110,12 +110,15 @@ function getBlocks(day) {
 
 function updateDetails(week, full) {
 	$("#details").empty();
-	var dotw = 6;
+	var today = 6;
 	if (!full) {
-		dotw = (new Date()).getDay();
+		today = (new Date()).getDay();
 	}
-	for (;dotw >= 0; dotw--) {
+	for (var dotw = 0;dotw >= today; dotw++) {
 		if (week.Days[dotw].Blocks == null) {
+			continue;
+		}
+		if (week.Days[dotw].Blocks.length == 0) {
 			continue;
 		}
 		$("#details").append(
@@ -155,8 +158,8 @@ function updateStatus() {
 
 function showCurrentWeeks() {
 	$("#weeks").empty();
-	var oneWeekAgo = new Date();
-	oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+	var now = new Date();
+	var oneWeekAgo = new Date(now.getTime() - 1000*60*60*24*7);
 	getWeek(oneWeekAgo, function (week) {
 		addWeek(week, "Last Week", "lwhrs");
 		getWeek(new Date(), function (week) {
@@ -167,6 +170,16 @@ function showCurrentWeeks() {
 }
 
 function showWeek(ev) {
+	var now  = new Date();
+	var bow = new Date(now.getTime() - (now.getDay()+1)*1000*60*60*24 - 1000*60);
+	bow.setHours(0);
+	bow.setMinutes(0);
+	if (ev.date.valueOf() >= bow.valueOf()) {
+		updateStatus();
+		showCurrentWeeks();
+		showingPreviousWeek = false;
+		return;
+	}
 	if (!showingPreviousWeek) {
 		showingPreviousWeek = true;
 		$("#clk").text("Current Week").removeClass("btn-danger").removeClass("btn-success").addClass("btn-primary");
