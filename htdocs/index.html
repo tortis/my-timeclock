@@ -4,36 +4,24 @@
 	<title>My Timeclock</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<link rel="stylesheet" type="text/css" href="/css/bootstrap.min.css">
+	<link rel="stylesheet" type="text/css" href="/css/datepicker.css">
 	<link rel="stylesheet" type="text/css" href="/css/main.css">
 </head>
 <body>
 	<script src="/js/jquery-2.1.1.min.js"></script>
 	<script src="/js/bootstrap.min.js"></script>
+	<script src="/js/bootstrap-datepicker.js"></script>
 	<script src="/js/mtc.js"></script>
 	<div id="content">
-		<div class="panel panel-default">
-			<div class="panel-heading">
-				<span><strong>Last Week</strong></span>
-				<span id="lwdate" class="caps"></span>
-				<span id="lwhrs" class="caps"></span>
-			</div>
-			<!--<div class="panel-body">Details</div>-->
-			<table id="lw" class="table"></table>
-		</div>
-		<div class="panel panel-default">
-			<div class="panel-heading">
-				<span><strong>This Week</strong></span>
-				<span id="twdate" class="caps"></span>
-				<span id="twhrs" class="caps"></span>
-			</div>
-			<table id="tw" class="table"></table>
-		</div>
+		<div id="weeks"></div>
 		<div>
-			<button type="button" id="clk" class="btn btn-success">Clock In</button><span id="timeon"></span>
+			<button type="button" id="clk" class="btn btn-success">
+				Clock In
+			</button>
+			<span id="timeon"></span>
+			<input type="text" class="span2 pull-right" value="02-16-2012" id="dp1">			
 		</div>
-		<div id="details">
-		</div>
-
+		<div id="details"></div>
 	</div>
 </body>
 

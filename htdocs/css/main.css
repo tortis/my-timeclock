@@ -10,6 +10,14 @@
 	letter-spacing: 1px;
 }
 
+#dp1 {
+	margin-right: 50px;
+}
+
+.weekname {
+	margin-right: 25px;
+}
+
 #timeon {
 	margin-left: 20px;
 }
@@ -50,7 +58,7 @@
 }
 
 @media only screen
-and (max-width : 575px) {
+and (max-width : 600px) {
 	.detail {
 		width: 100%;
 	}

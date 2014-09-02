@@ -1,6 +1,7 @@
 var onClock = false;
 var timeOn = 0;
 var timer;
+var showingPreviousWeek = false;
 
 var weekday = new Array(7);
 weekday[0]=  "Sunday";
@@ -63,9 +64,32 @@ function getWeek(d, cb) {
 	};
 }
 
-function weekToHTML(week) {
-	var html = '<tr><td>Sun</td><td>Mon</td><td>Tues</td><td>Wed</td><td>Thur</td><td>Fri</td><td>Sat</td></tr><tr><td>'+week.Days[0].Hours.toFixed(1)+'</td><td>'+week.Days[1].Hours.toFixed(1)+'</td><td>'+week.Days[2].Hours.toFixed(1)+'</td><td>'+week.Days[3].Hours.toFixed(1)+'</td><td>'+week.Days[4].Hours.toFixed(1)+'</td><td>'+week.Days[5].Hours.toFixed(1)+'</td><td>'+week.Days[6].Hours.toFixed(1)+'</td></tr>';
-	return html;
+function addWeek(week, wname, hrsid) {
+	$("#weeks").append( $("<div>").addClass("panel").addClass("panel-default").append(
+		$("<div>").addClass("panel-heading").append(
+			$("<span>").addClass("weekname").append($("<strong>").text(wname))).append(
+			$("<span>").addClass("caps").text(week.Monday.toLocaleDateString())).append(
+			$("<span>").attr("id", hrsid).addClass(
+				"caps").addClass(
+				"pull-right").text(week.Hours.toFixed(1)+" hrs"))).append(
+		$("<table>").addClass("table").append(
+			$("<tr>").append(
+				$("<td>").text("Sun")).append(
+				$("<td>").text("Mon")).append(
+				$("<td>").text("Tues")).append(
+				$("<td>").text("Wed")).append(
+				$("<td>").text("Thur")).append(
+				$("<td>").text("Fri")).append(
+				$("<td>").text("Sat"))).append(
+			$("<tr>").append(
+				$("<td>").text(week.Days[0].Hours.toFixed(1))).append(
+				$("<td>").text(week.Days[1].Hours.toFixed(1))).append(
+				$("<td>").text(week.Days[2].Hours.toFixed(1))).append(
+				$("<td>").text(week.Days[3].Hours.toFixed(1))).append(
+				$("<td>").text(week.Days[4].Hours.toFixed(1))).append(
+				$("<td>").text(week.Days[5].Hours.toFixed(1))).append(
+				$("<td>").text(week.Days[6].Hours.toFixed(1))))));
+
 }
 
 function getBlocks(day) {
@@ -84,16 +108,21 @@ function getBlocks(day) {
 	return r;
 }
 
-function updateDetails(week) {
+function updateDetails(week, full) {
 	$("#details").empty();
-	var dotw = (new Date()).getDay();
+	var dotw = 6;
+	if (!full) {
+		dotw = (new Date()).getDay();
+	}
 	for (;dotw >= 0; dotw--) {
 		if (week.Days[dotw].Blocks == null) {
 			continue;
 		}
 		$("#details").append(
 			$("<div>").addClass("panel").addClass("panel-default").addClass("detail").append(
-				$("<div>").addClass("panel-heading").text(weekday[dotw])).append(getBlocks(week.Days[dotw])));
+				$("<div>").addClass("panel-heading").text(weekday[dotw]).append(
+						$("<span>").addClass("caps").addClass("pull-right").text("date"))).append(
+					getBlocks(week.Days[dotw])));
 	}
 	
 }
@@ -124,43 +153,59 @@ function updateStatus() {
 	});
 }
 
-function updateWeeks() {
-	getWeek(new Date(), function (week) {
-		$("#tw").html(weekToHTML(week));
-		$("#twhrs").text(week.Hours.toFixed(1) + " Hrs");
-		$("#twdate").text(week.Monday.toLocaleDateString());
-		updateDetails(week);
-	});
+function showCurrentWeeks() {
+	$("#weeks").empty();
 	var oneWeekAgo = new Date();
 	oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
 	getWeek(oneWeekAgo, function (week) {
-		$("#lw").html(weekToHTML(week));
-		$("#lwhrs").text(week.Hours.toFixed(1) + " Hrs");
-		$("#lwdate").text(week.Monday.toLocaleDateString());
+		addWeek(week, "Last Week", "lwhrs");
+		getWeek(new Date(), function (week) {
+			addWeek(week, "This Week", "twhrs");
+			updateDetails(week, false);
+		});
 	});
+}
 
+function showWeek(ev) {
+	if (!showingPreviousWeek) {
+		showingPreviousWeek = true;
+		$("#clk").text("Current Week").removeClass("btn-danger").removeClass("btn-success").addClass("btn-primary");
+		$("#timeon").empty();
+	}
+	$("#weeks").empty();
+	getWeek(ev.date, function (week) {
+		addWeek(week, ev.date.toLocaleDateString(), "sw");
+		updateDetails(week, true);
+	});
 }
 
 window.onload = function () {
 	$("#clk").click(function () {
-		if (onClock) {
-			clockOut(function (s) {
-				if (s) {
-					onClock = false;
-					buttonUpdate(onClock, 0);
-					updateWeeks();
-				}
-			});
+		if (showingPreviousWeek) {
+			updateStatus();
+			showCurrentWeeks();
+			showingPreviousWeek = false;
 		} else {
-			clockIn(function (s) {
-				if (s) {
-					onClock = true;
-					buttonUpdate(onClock, 0);
-				}
-
-			});
+			if (onClock) {
+				clockOut(function (s) {
+					if (s) {
+						onClock = false;
+						buttonUpdate(onClock, 0);
+						showCurrentWeeks();
+					}
+				});
+			} else {
+				clockIn(function (s) {
+					if (s) {
+						onClock = true;
+						buttonUpdate(onClock, 0);
+					}
+				});
+			}
 		}
 	});
+	$('#dp1').attr("value", (new Date()).toLocaleDateString());
+	$('#dp1').datepicker().on('changeDate', showWeek);
 	updateStatus();
-	updateWeeks();
+	showCurrentWeeks();
 }
