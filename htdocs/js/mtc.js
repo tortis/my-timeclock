@@ -114,7 +114,7 @@ function updateDetails(week, full) {
 	if (!full) {
 		today = (new Date()).getDay();
 	}
-	for (var dotw = 0;dotw >= today; dotw++) {
+	for (var dotw = 0;dotw <= today; dotw++) {
 		if (week.Days[dotw].Blocks == null) {
 			continue;
 		}
@@ -175,9 +175,11 @@ function showWeek(ev) {
 	bow.setHours(0);
 	bow.setMinutes(0);
 	if (ev.date.valueOf() >= bow.valueOf()) {
-		updateStatus();
-		showCurrentWeeks();
-		showingPreviousWeek = false;
+		if (showingPreviousWeek) {
+			updateStatus();
+			showCurrentWeeks();
+			showingPreviousWeek = false;
+		}
 		return;
 	}
 	if (!showingPreviousWeek) {
