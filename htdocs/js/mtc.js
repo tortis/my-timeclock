@@ -12,6 +12,23 @@ weekday[4] = "Thursday";
 weekday[5] = "Friday";
 weekday[6] = "Saturday";
 
+Number.prototype.fixedSize = function (size) {
+	var s = "0" + this;
+	return s.substr(s.length-size);
+}
+
+Date.prototype.toSimpleTime = function () {
+	var hrs = this.getHours();
+	var mins = this.getMinutes();
+	var result = "";
+	if (hrs > 12) {
+		result += hrs % 12 + ":" + mins.fixedSize(2) + " pm";
+	} else {
+		result += hrs + ":" + mins.fixedSize(2) + " am";
+	}
+	return result;
+}
+
 function getStatus(cb) {
 	var req = new XMLHttpRequest();
 	req.open("GET", "/status/", true);
@@ -100,10 +117,10 @@ function getBlocks(day) {
 		r.append($("<div>").addClass("list-group-item").append(
 			$("<span>").addClass("left").append(
 				$("<span>").addClass("caps").text("IN ")).append(
-				$("<span>").text(tin.toLocaleTimeString()))).append(
+				$("<span>").text(tin.toSimpleTime()))).append(
 			$("<span>").addClass("pull-right").append(
 				$("<span>").addClass("caps").text("OUT ")).append(
-				$("<span>").text(tout.toLocaleTimeString()))));
+				$("<span>").text(tout.toSimpleTime()))));
 	}
 	return r;
 }
@@ -121,10 +138,18 @@ function updateDetails(week, full) {
 		if (week.Days[dotw].Blocks.length == 0) {
 			continue;
 		}
+		var thisDate = new Date(week.Monday.getTime() + (dotw - 1)*1000*60*60*24);
+		var dayName = "";
+		if (!full && today == dotw) {
+			dayName = "<strong>Today</strong>"
+		} else {
+			dayName = weekday[dotw];
+		}
 		$("#details").append(
 			$("<div>").addClass("panel").addClass("panel-default").addClass("detail").append(
-				$("<div>").addClass("panel-heading").text(weekday[dotw]).append(
-						$("<span>").addClass("caps").addClass("pull-right").text("date"))).append(
+				$("<div>").addClass("panel-heading").html(dayName).append(
+						$("<span>").addClass("caps").addClass("pull-right").text(
+							thisDate.toLocaleDateString()))).append(
 					getBlocks(week.Days[dotw])));
 	}
 	

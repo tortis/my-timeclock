@@ -10,8 +10,14 @@
 	letter-spacing: 1px;
 }
 
+#clk {
+	display: inline-block;
+}
+
 #dp1 {
 	margin-right: 50px;
+	display: inline-block;
+	float: right;
 }
 
 .weekname {
@@ -62,5 +68,14 @@
 and (max-width : 600px) {
 	.detail {
 		width: 100%;
+	}
+	
+	#dp1 {
+		display: block;
+		float: left;
+		clear: right;
+	}
+	#clk {
+		margin-bottom: 25px;
 	}
 }
