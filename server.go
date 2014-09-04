@@ -8,11 +8,18 @@ import "os"
 import "os/signal"
 import "encoding/json"
 import "time"
+import "flag"
 
 var timeClock *TimeClock
+var port *int
+var store_file *string
+var htdocs_dir *string
 
 func init() {
-	timeClock = NewTimeClock()
+	port = flag.Int("port", 713, "Port on which the web application will run.")
+	store_file = flag.String("store", "weeks.gob", "File where time data will be stored.")
+	htdocs_dir = flag.String("htdocs", "htdocs", "Path to the htdocs directory.")
+
 
 	// Register to receive interrupt signal.
 	// Write to the weekstore when signal is
@@ -62,10 +69,13 @@ func handleWeek(w http.ResponseWriter, req *http.Request) {
 }
 
 func main() {
-	http.Handle("/", http.FileServer(http.Dir("htdocs")))
+	flag.Parse()
+	timeClock = NewTimeClock(*store_file)
+
+	http.Handle("/", http.FileServer(http.Dir(*htdocs_dir)))
 	http.HandleFunc("/in/", handleIn)
 	http.HandleFunc("/out/", handleOut)
 	http.HandleFunc("/week/", handleWeek)
 	http.HandleFunc("/status/", handleStatus)
-	log.Fatal(http.ListenAndServe(":88", nil))
+	log.Fatal(http.ListenAndServe(":"+strconv.Itoa(*port), nil))
 }

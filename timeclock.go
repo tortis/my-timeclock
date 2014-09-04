@@ -2,19 +2,15 @@ package main
 
 import "time"
 
-const (
-	STOREFILE = "weeks.gob"
-)
-
 type TimeClock struct {
 	store   *WeekStore
 	onClock bool
 	block   *TimeBlock
 }
 
-func NewTimeClock() *TimeClock {
+func NewTimeClock(storefile string) *TimeClock {
 	return &TimeClock{
-		store:   NewWeekStore(STOREFILE),
+		store:   NewWeekStore(storefile),
 		onClock: false,
 	}
 }
@@ -42,6 +38,7 @@ func (c *TimeClock) ClockOut() bool {
 		c.block.End()
 		week, _ := c.store.Get(time.Now())
 		week.Today().AddTimeBlock(c.block)
+		c.store.SaveWeeks();
 		c.onClock = false
 		return true
 	}
