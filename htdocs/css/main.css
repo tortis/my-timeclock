@@ -74,8 +74,6 @@ and (max-width : 600px) {
 		display: block;
 		float: left;
 		clear: right;
-	}
-	#clk {
-		margin-bottom: 25px;
+		margin-top: 25px;
 	}
 }
