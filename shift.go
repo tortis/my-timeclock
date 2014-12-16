@@ -11,7 +11,6 @@ type Shift struct {
 	On     int64         `bson:"on,omitempty"`
 	Off    int64         `bson:"off"`
 	Active bool          `bson:"active"`
-	User   bson.ObjectId `bson:user"user,omitempty"`
 }
 
 func NewShift() *Shift {

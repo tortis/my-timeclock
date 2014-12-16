@@ -39,7 +39,7 @@ func OpenTimeStore(mgo_user, mgo_pwd, mgo_url, mgo_port, mgo_db, col string) (*T
 
 }
 
-func (ts *TimeStore) ClockOn() error {
+func (ts *TimeStore) ClockIn() error {
 	if ts.state == true {
 		return errors.New("Already clocked in.")
 	}
@@ -59,13 +59,13 @@ func (ts *TimeStore) Close() {
 	ts.db_session.Close()
 }
 
-func (ts *TimeStore) ClockOff() error {
+func (ts *TimeStore) ClockOut() error {
 	if ts.state == false {
 		return errors.New("Not clocked on.")
 	}
 
 	shifts := ts.db_session.DB(ts.db_name).C(ts.col_name)
-	err := shifts.Update(bson.M{"active": true}, bson.M{"off": time.Now().Unix(), "active": false})
+	err := shifts.Update(bson.M{"active": true}, bson.M{"$set":bson.M{"off": time.Now().Unix(), "active": false}})
 	if err != nil {
 		return err
 	}
@@ -116,7 +116,7 @@ func (ts *TimeStore) ModifyShift(id bson.ObjectId, on, off int64) error {
 		return errors.New("Off time is before on time.")
 	}
 	shifts := ts.db_session.DB(ts.db_name).C(ts.col_name)
-	err := shifts.UpdateId(id, bson.M{"on": on, "off": off, "active": false})
+	err := shifts.UpdateId(id, bson.M{"$set":bson.M{"on": on, "off": off, "active": false}})
 	if err != nil {
 		return err
 	}

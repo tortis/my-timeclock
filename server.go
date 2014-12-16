@@ -1,66 +1,70 @@
 package main
 
-import "net/http"
-import "log"
-import "strconv"
-import "flag"
+import (
+	"flag"
+	"fmt"
+	"log"
+	"net/http"
+	"strconv"
+)
 
-var port *int
-var store_file *string
-var htdocs_dir *string
+var (
+	port       *int
+	store_file *string
+	htdocs_dir *string
+	timeStore  *TimeStore
+)
 
 func init() {
-	port = flag.Int("port", 713, "Port on which the web application will run.")
+	port = flag.Int("port", 7171, "Port on which the web application will run.")
 	htdocs_dir = flag.String("htdocs", "htdocs", "Path to the htdocs directory.")
 }
 
 func main() {
 	flag.Parse()
-	//timeClock = NewTimeClock(*store_file)
-	timeStore, err := OpenTimeStore("david", "asdf", "localhost", "27017", "timeclock", "shifts")
+	var err error
+	timeStore, err = OpenTimeStore("david", "asdf", "localhost", "27017", "timeclock", "shifts")
 	if err != nil {
 		log.Fatal("Failed to open time store: ", err)
 	}
 	defer timeStore.Close()
 
 	http.Handle("/", http.FileServer(http.Dir(*htdocs_dir)))
-	http.HandleFunc("/in/", handleIn)
-	http.HandleFunc("/out/", handleOut)
-	http.HandleFunc("/week/", handleWeek)
-	http.HandleFunc("/status/", handleStatus)
+	http.HandleFunc("/in", handleIn)
+	http.HandleFunc("/out", handleOut)
+	http.HandleFunc("/status", handleStatus)
+	fmt.Println("Starting server on port " + strconv.Itoa(*port) + ".")
 	log.Fatal(http.ListenAndServe(":"+strconv.Itoa(*port), nil))
 }
 
 func handleIn(w http.ResponseWriter, req *http.Request) {
-	//if timeClock.ClockIn() {
-	//	fmt.Fprintf(w, "true")
-	//} else {
-	//	fmt.Fprintf(w, "false")
-	//}
+	err := timeStore.ClockIn()
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprintf(w, err.Error())
+		return
+	}
+	fmt.Fprintf(w, "OK")
 }
 
 func handleOut(w http.ResponseWriter, req *http.Request) {
-	//if timeClock.ClockOut() {
-	//	fmt.Fprintf(w, "true")
-	//} else {
-	//	fmt.Fprintf(w, "false")
-	//}
+	err := timeStore.ClockOut()
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprintf(w, err.Error())
+		return
+	}
+	fmt.Fprintf(w, "OK")
 }
 
 func handleStatus(w http.ResponseWriter, req *http.Request) {
-	//jbyte, err := json.Marshal(Status{OnClock: timeClock.onClock, TimeOn: timeClock.TimeOn().Hours()})
-	//println(string(jbyte))
-	//if err == nil {
-	//	w.Write(jbyte)
-	//} else {
-	//	fmt.Fprintf(w, "error")
-	//}
+	if timeStore.GetState() {
+		fmt.Fprintf(w, "true")
+	} else {
+		fmt.Fprintf(w, "false")
+	}
 }
 
-func handleWeek(w http.ResponseWriter, req *http.Request) {
-	//year, _ := strconv.Atoi(req.FormValue("year"))
-	//m, _ := strconv.Atoi(req.FormValue("month"))
-	//month := time.Month(m)
-	//day, _ := strconv.Atoi(req.FormValue("day"))
-	//fmt.Fprintf(w, timeClock.GetWeek(time.Date(year, month, day, 0, 0, 0, 0, time.Now().Location())).ToJSON())
+func handleShifts(w http.RequestWriter, req *http.Request) {
+
 }
