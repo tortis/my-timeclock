@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"encoding/json"
 	"log"
 	"net/http"
 	"strconv"
@@ -33,7 +34,11 @@ func main() {
 	http.HandleFunc("/in", handleIn)
 	http.HandleFunc("/out", handleOut)
 	http.HandleFunc("/status", handleStatus)
-	fmt.Println("Starting server on port " + strconv.Itoa(*port) + ".")
+	http.HandleFunc("/shifts", handleShifts)
+	http.HandleFunc("/week", handleWeek)
+	http.HandleFunc("/createshift", handleCreateShift)
+	http.HandleFunc("/editshift", handleEditShift)
+	log.Println("Starting server on port " + strconv.Itoa(*port) + ".")
 	log.Fatal(http.ListenAndServe(":"+strconv.Itoa(*port), nil))
 }
 
@@ -65,6 +70,94 @@ func handleStatus(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func handleShifts(w http.RequestWriter, req *http.Request) {
+func handleShifts(w http.ResponseWriter, req *http.Request) {
+	fromString := req.FormValue("from")
+	toString := req.FormValue("to")
+	from, err := strconv.ParseInt(fromString, 10, 64)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprintf(w, "Invalid 'from' date.")
+		return
+	}
+	to, err := strconv.ParseInt(toString, 10, 64)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprintf(w, "Invalid 'to' date.")
+		return
+	}
+	shifts, err := timeStore.GetShifts(from, to)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprintf(w, err.Error())
+		return
+	}
+	jss, _ := json.Marshal(&shifts)
+	fmt.Fprint(w, string(jss))
+}
 
+func handleWeek(w http.ResponseWriter, req *http.Request) {
+	sundayString := req.FormValue("sunday")
+	sunday, err := strconv.ParseInt(sundayString, 10, 64)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprint(w, "Invalid sunday date.")
+		return
+	}
+	week, err := timeStore.GetWeekHours(sunday)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprint(w, "Failed to get week: ", err)
+		return
+	}
+	jss, _ := json.Marshal(&week)
+	fmt.Fprint(w, string(jss))
+}
+
+func handleCreateShift(w http.ResponseWriter, req *http.Request) {
+	onString := req.FormValue("on")
+	offString := req.FormValue("off")
+	on, err := strconv.ParseInt(onString, 10, 64)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprintf(w, "Invalid on time")
+		return
+	}
+	off, err := strconv.ParseInt(offString, 10, 64)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprintf(w, "Invalid off time")
+		return
+	}
+	err = timeStore.CreateShift(on, off)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprintf(w, "Server failed to create the shift.")
+		return
+	}
+	fmt.Fprint(w, "OK")
+}
+
+func handleEditShift(w http.ResponseWriter, req *http.Request) {
+	hex_id := req.FormValue("id")
+	onString := req.FormValue("on")
+	offString := req.FormValue("off")
+	on, err := strconv.ParseInt(onString, 10, 64)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprint(w, "Invalid on time")
+		return
+	}
+	off, err := strconv.ParseInt(offString, 10, 64)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprint(w, "Invalid off time")
+		return
+	}
+	err = timeStore.ModifyShift(hex_id, on, off)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprint(w, "Failed to modify shift: ", err)
+		return
+	}
+	fmt.Fprint(w, "OK")
 }

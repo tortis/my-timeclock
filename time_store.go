@@ -65,7 +65,7 @@ func (ts *TimeStore) ClockOut() error {
 	}
 
 	shifts := ts.db_session.DB(ts.db_name).C(ts.col_name)
-	err := shifts.Update(bson.M{"active": true}, bson.M{"$set":bson.M{"off": time.Now().Unix(), "active": false}})
+	err := shifts.Update(bson.M{"active": true}, bson.M{"$set": bson.M{"off": time.Now().Unix(), "active": false}})
 	if err != nil {
 		return err
 	}
@@ -77,19 +77,40 @@ func (ts *TimeStore) GetState() bool {
 	return ts.state
 }
 
-func (ts *TimeStore) GetShifts(from, to int64) ([]*Shift, error) {
+func (ts *TimeStore) GetShifts(from, to int64) ([]Shift, error) {
+	if to < from {
+		return nil, errors.New("To time must be after from time.")
+	}
 	shifts := ts.db_session.DB(ts.db_name).C(ts.col_name)
-	q := shifts.Find(bson.M{"$or": []bson.M{{"on": bson.M{"$gte": from}}, bson.M{"off": bson.M{"$lt": to}}}}) // da faq
+	// off > from && on < to || 
+	q := shifts.Find(bson.M{"on": bson.M{"$lt": to}, "off": bson.M{"$gt": from}})
 	num, err := q.Count()
 	if err != nil {
 		return nil, err
 	}
-	ss := make([]*Shift, num)
+	ss := make([]Shift, num)
 	err = q.All(&ss)
 	if err != nil {
 		return nil, err
 	}
 	return ss, nil
+}
+
+// sunday should be unix time of Sunday 12:00:00 am
+func (ts *TimeStore) GetWeekHours(sunday int64) ([]int64, error) {
+	week_hours := make([]int64, 7)
+	end := sunday + 604800 // seconds in a week
+	shifts, err := ts.GetShifts(sunday, end)
+	if err != nil {
+		return week_hours, err
+	}
+	for i, _ := range week_hours {
+		start := sunday + int64(86400*i)
+		for _, shift := range shifts {
+			week_hours[i] += shift.DayOverlap(start)
+		}
+	}
+	return week_hours, nil
 }
 
 func (ts *TimeStore) GetShift(id bson.ObjectId) (*Shift, error) {
@@ -111,12 +132,16 @@ func (ts *TimeStore) DeleteShift(id bson.ObjectId) error {
 	return nil
 }
 
-func (ts *TimeStore) ModifyShift(id bson.ObjectId, on, off int64) error {
+func (ts *TimeStore) ModifyShift(id string, on, off int64) error {
+	if !bson.IsObjectIdHex(id) {
+		return errors.New("The id is not valid.")
+	}
+	shift_id := bson.ObjectIdHex(id)
 	if off < on {
 		return errors.New("Off time is before on time.")
 	}
 	shifts := ts.db_session.DB(ts.db_name).C(ts.col_name)
-	err := shifts.UpdateId(id, bson.M{"$set":bson.M{"on": on, "off": off, "active": false}})
+	err := shifts.UpdateId(shift_id, bson.M{"$set": bson.M{"on": on, "off": off, "active": false}})
 	if err != nil {
 		return err
 	}

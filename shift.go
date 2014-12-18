@@ -30,3 +30,31 @@ func FullShift(on, off int64) (*Shift, error) {
 		Active: false,
 	}, nil
 }
+
+func (s *Shift) DayOverlap(day_start int64) int64 {
+	day_end := day_start + 86400 // Seconds in a day
+	// Handle cases where shift does not overlap with day
+	if s.On >= day_end {
+		return 0
+	}
+	if s.Off < day_start {
+		return 0
+	}
+	return min(day_end, s.Off) - max(day_start, s.On)
+}
+
+func max(a, b int64) int64 {
+	if a > b {
+		return a
+	} else {
+		return b
+	}
+}
+
+func min(a, b int64) int64 {
+	if a < b {
+		return a
+	} else {
+		return b
+	}
+}
