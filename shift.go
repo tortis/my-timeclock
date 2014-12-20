@@ -43,6 +43,15 @@ func (s *Shift) DayOverlap(day_start int64) int64 {
 	return min(day_end, s.Off) - max(day_start, s.On)
 }
 
+func (s *Shift) OnDay(day_start int64) bool {
+	day_end := day_start + 86400 // Seconds in a day
+	if s.Off > day_start && s.Off <= day_end {
+		return true
+	} else {
+		return false
+	}
+}
+
 func max(a, b int64) int64 {
 	if a > b {
 		return a

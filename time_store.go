@@ -8,6 +8,11 @@ import (
 	"time"
 )
 
+type Day struct {
+	S []Shift
+	T float64
+}
+
 type TimeStore struct {
 	db_session *mgo.Session
 	db_name    string
@@ -97,20 +102,24 @@ func (ts *TimeStore) GetShifts(from, to int64) ([]Shift, error) {
 }
 
 // sunday should be unix time of Sunday 12:00:00 am
-func (ts *TimeStore) GetWeekHours(sunday int64) ([]int64, error) {
-	week_hours := make([]int64, 7)
+func (ts *TimeStore) GetWeek(sunday int64) ([]Day, error) {
+	week := make([]Day, 7)
 	end := sunday + 604800 // seconds in a week
 	shifts, err := ts.GetShifts(sunday, end)
 	if err != nil {
-		return week_hours, err
+		return week, err
 	}
-	for i, _ := range week_hours {
+	for i, _ := range week {
 		start := sunday + int64(86400*i)
+		week[i].S = make([]Shift, 0)
 		for _, shift := range shifts {
-			week_hours[i] += shift.DayOverlap(start)
+			week[i].T += float64(shift.DayOverlap(start)) / 3600.0
+			if shift.OnDay(start) {
+				week[i].S = append(week[i].S, shift)
+			}
 		}
 	}
-	return week_hours, nil
+	return week, nil
 }
 
 func (ts *TimeStore) GetShift(id bson.ObjectId) (*Shift, error) {
@@ -123,9 +132,13 @@ func (ts *TimeStore) GetShift(id bson.ObjectId) (*Shift, error) {
 	return s, nil
 }
 
-func (ts *TimeStore) DeleteShift(id bson.ObjectId) error {
+func (ts *TimeStore) DeleteShift(id string) error {
+	if !bson.IsObjectIdHex(id) {
+		return errors.New("The id is not valid.")
+	}
+	shift_id := bson.ObjectIdHex(id)
 	shifts := ts.db_session.DB(ts.db_name).C(ts.col_name)
-	err := shifts.RemoveId(id)
+	err := shifts.RemoveId(shift_id)
 	if err != nil {
 		return err
 	}

@@ -17,7 +17,7 @@ var (
 )
 
 func init() {
-	port = flag.Int("port", 7171, "Port on which the web application will run.")
+	port = flag.Int("port", 8080, "Port on which the web application will run.")
 	htdocs_dir = flag.String("htdocs", "htdocs", "Path to the htdocs directory.")
 }
 
@@ -38,6 +38,7 @@ func main() {
 	http.HandleFunc("/week", handleWeek)
 	http.HandleFunc("/createshift", handleCreateShift)
 	http.HandleFunc("/editshift", handleEditShift)
+	http.HandleFunc("/deleteshift", handleDeleteShift)
 	log.Println("Starting server on port " + strconv.Itoa(*port) + ".")
 	log.Fatal(http.ListenAndServe(":"+strconv.Itoa(*port), nil))
 }
@@ -103,7 +104,7 @@ func handleWeek(w http.ResponseWriter, req *http.Request) {
 		fmt.Fprint(w, "Invalid sunday date.")
 		return
 	}
-	week, err := timeStore.GetWeekHours(sunday)
+	week, err := timeStore.GetWeek(sunday)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		fmt.Fprint(w, "Failed to get week: ", err)
@@ -157,6 +158,17 @@ func handleEditShift(w http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		fmt.Fprint(w, "Failed to modify shift: ", err)
+		return
+	}
+	fmt.Fprint(w, "OK")
+}
+
+func handleDeleteShift(w http.ResponseWriter, req *http.Request) {
+	hex_id := req.FormValue("id")
+	err := timeStore.DeleteShift(hex_id)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprint(w, "Failed to delete shift: ", err)
 		return
 	}
 	fmt.Fprint(w, "OK")
