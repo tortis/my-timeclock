@@ -16,6 +16,7 @@ type Shift struct {
 func NewShift() *Shift {
 	return &Shift{
 		On:     time.Now().Unix(),
+		Off:	time.Now().Unix(),
 		Active: true,
 	}
 }

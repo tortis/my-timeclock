@@ -9,8 +9,16 @@ import (
 )
 
 type Day struct {
-	S []Shift
-	T float64
+	Name   string    `json:"name"`
+	Date   time.Time `json:"date"`
+	Shifts []Shift   `json:"shifts"`
+	Hours  float64   `json:"hours"`
+}
+
+type Week struct {
+	Date  time.Time `json:"date"`
+	Days  []Day     `json:"days"`
+	Hours float64   `json:"hours"`
 }
 
 type TimeStore struct {
@@ -102,20 +110,28 @@ func (ts *TimeStore) GetShifts(from, to int64) ([]Shift, error) {
 }
 
 // sunday should be unix time of Sunday 12:00:00 am
-func (ts *TimeStore) GetWeek(sunday int64) ([]Day, error) {
-	week := make([]Day, 7)
-	end := sunday + 604800 // seconds in a week
-	shifts, err := ts.GetShifts(sunday, end)
-	if err != nil {
-		return week, err
+func (ts *TimeStore) GetWeek(sunday int64) (*Week, error) {
+	week := &Week{
+		Date:  time.Unix(sunday, 0),
+		Days:  make([]Day, 7),
+		Hours: 0.0,
 	}
-	for i, _ := range week {
-		start := sunday + int64(86400*i)
-		week[i].S = make([]Shift, 0)
+	// Get all the shifts that intersect this week
+	shifts, err := ts.GetShifts(sunday, sunday+604800)
+	if err != nil {
+		return nil, err
+	}
+
+	// Populate each day
+	for i, _ := range week.Days {
+		day_start := sunday + int64(86400*i)
+		week.Days[i].Name = (time.Weekday(i)).String()
+		week.Days[i].Date = time.Unix(day_start, 0)
 		for _, shift := range shifts {
-			week[i].T += float64(shift.DayOverlap(start)) / 3600.0
-			if shift.OnDay(start) {
-				week[i].S = append(week[i].S, shift)
+			week.Days[i].Hours += float64(shift.DayOverlap(day_start)) / 3600.0
+			week.Hours += week.Days[i].Hours
+			if shift.OnDay(day_start) {
+				week.Days[i].Shifts = append(week.Days[i].Shifts, shift)
 			}
 		}
 	}
@@ -137,10 +153,18 @@ func (ts *TimeStore) DeleteShift(id string) error {
 		return errors.New("The id is not valid.")
 	}
 	shift_id := bson.ObjectIdHex(id)
-	shifts := ts.db_session.DB(ts.db_name).C(ts.col_name)
-	err := shifts.RemoveId(shift_id)
+	s, err := ts.GetShift(shift_id)
 	if err != nil {
 		return err
+	}
+	shifts := ts.db_session.DB(ts.db_name).C(ts.col_name)
+	err = shifts.RemoveId(shift_id)
+	if err != nil {
+		return err
+	}
+	if s.Active {
+		log.Println("Deleted the active shift, changing state to false.")
+		ts.state = false
 	}
 	return nil
 }

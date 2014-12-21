@@ -1,13 +1,29 @@
 .detail {
-    display: inline-block;
-    width: 45%;
-    margin-left: 2.5vw;
-    margin-right: 2.5vw;
-    vertical-align: top;
+    padding-left: 1.5vw;
+    padding-right: 1.5vw;
 }
 
-@media only screen and (max-width: 600px) {
-    .detail {
-        width: 90%;
-    }
+.action-button {
+	cursor: pointer;
+	margin-left: 7px;
+}
+
+#details {
+	margin: 0;
+}
+
+#week-table td {
+	text-align: center;
+}
+
+#error {
+	width: 100%;
+	margin-top: 35vh;
+	text-align: center;
+	font-size: 150%;
+	font-family: sans-serif;
+}
+
+#clk-btn {
+	margin: 20px 20px 20px 1.5vw;
 }
