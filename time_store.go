@@ -36,7 +36,11 @@ func OpenTimeStore(mgo_user, mgo_pwd, mgo_url, mgo_port, mgo_db, col string) (*T
 	var err error
 
 	// Dial the mongo session
-	ts.db_session, err = mgo.Dial(mgo_user + ":" + mgo_pwd + "@" + mgo_url + ":" + mgo_port + "/" + mgo_db)
+	if mgo_user == "" {
+		ts.db_session, err = mgo.Dial(mgo_url + ":" + mgo_port + "/" + mgo_db)
+	} else {
+		ts.db_session, err = mgo.Dial(mgo_user + ":" + mgo_pwd + "@" + mgo_url + ":" + mgo_port + "/" + mgo_db)
+	}
 	if err != nil {
 		log.Println("Failed to Dial")
 		return nil, err
@@ -95,7 +99,7 @@ func (ts *TimeStore) GetShifts(from, to int64) ([]Shift, error) {
 		return nil, errors.New("To time must be after from time.")
 	}
 	shifts := ts.db_session.DB(ts.db_name).C(ts.col_name)
-	// off > from && on < to || 
+	// off > from && on < to ||
 	q := shifts.Find(bson.M{"on": bson.M{"$lt": to}, "off": bson.M{"$gt": from}})
 	num, err := q.Count()
 	if err != nil {

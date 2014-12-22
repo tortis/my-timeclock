@@ -1,9 +1,9 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
-	"encoding/json"
 	"log"
 	"net/http"
 	"strconv"
@@ -11,20 +11,31 @@ import (
 
 var (
 	port       *int
-	store_file *string
+	mongo_url  *string
+	mongo_port *string
+	mongo_db   *string
+	mongo_col  *string
+	mongo_user *string
+	mongo_pwd  *string
 	htdocs_dir *string
 	timeStore  *TimeStore
 )
 
 func init() {
 	port = flag.Int("port", 8080, "Port on which the web application will run.")
+	mongo_url = flag.String("dburl", "localhost", "URL of mongodb.")
+	mongo_port = flag.String("dbport", "27017", "Port to connect to mongo.")
+	mongo_db = flag.String("dbname", "timeclock", "Mongo database the app will use.")
+	mongo_col = flag.String("dbcol", "shifts", "Collection to store shifts in.")
+	mongo_user = flag.String("dbuser", "", "Database username.")
+	mongo_pwd = flag.String("dbpwd", "", "Database password.")
 	htdocs_dir = flag.String("htdocs", "htdocs", "Path to the htdocs directory.")
 }
 
 func main() {
 	flag.Parse()
 	var err error
-	timeStore, err = OpenTimeStore("david", "asdf", "localhost", "27017", "timeclock", "shifts")
+	timeStore, err = OpenTimeStore(*mongo_user, *mongo_pwd, *mongo_url, *mongo_port, *mongo_db, *mongo_col)
 	if err != nil {
 		log.Fatal("Failed to open time store: ", err)
 	}

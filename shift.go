@@ -16,7 +16,7 @@ type Shift struct {
 func NewShift() *Shift {
 	return &Shift{
 		On:     time.Now().Unix(),
-		Off:	time.Now().Unix(),
+		Off:    time.Now().Unix(),
 		Active: true,
 	}
 }
@@ -41,7 +41,11 @@ func (s *Shift) DayOverlap(day_start int64) int64 {
 	if s.Off < day_start {
 		return 0
 	}
-	return min(day_end, s.Off) - max(day_start, s.On)
+	if s.Active {
+		return min(day_end, time.Now().Unix()) - max(day_start, s.On)
+	} else {
+		return min(day_end, s.Off) - max(day_start, s.On)
+	}
 }
 
 func (s *Shift) OnDay(day_start int64) bool {
