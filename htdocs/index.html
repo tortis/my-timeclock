@@ -35,7 +35,11 @@
 				<div class="down-some"><span class="glyphicon glyphicon-chevron-left"></span> Previous</div>
 			</div>
 			<div class="col-xs-4 text-center">
-				<button id="clk-btn" class="btn" ng-class='{"btn-danger":clock && current, "btn-success":!clock && current, "btn-primary":!current}' ng-click="current ? clock ? clockOut() : clockIn() : currentWeek()">
+				<button
+					id="clk-btn" 
+					class="btn" 
+					ng-class='{"btn-danger":clock && current, "btn-success":!clock && current, "btn-primary":!current}' 
+					ng-click="current ? clock ? clockOut() : clockIn() : currentWeek()">
 					{{current ? clock ? 'Clock Out' : 'Clock In' : 'Current Week'}}
 				</button>
 			</div>
