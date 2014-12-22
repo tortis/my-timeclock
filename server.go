@@ -44,6 +44,7 @@ func main() {
 	http.Handle("/", http.FileServer(http.Dir(*htdocs_dir)))
 	http.HandleFunc("/in", handleIn)
 	http.HandleFunc("/out", handleOut)
+	http.HandleFunc("/toggle", handleToggle)
 	http.HandleFunc("/status", handleStatus)
 	http.HandleFunc("/shifts", handleShifts)
 	http.HandleFunc("/week", handleWeek)
@@ -72,6 +73,14 @@ func handleOut(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 	fmt.Fprintf(w, "OK")
+}
+
+func handleToggle(w http.ResponseWriter, req *http.Request) {
+	if timeStore.GetState() {
+		handleOut(w, req)
+	} else {
+		handleIn(w, req)
+	}
 }
 
 func handleStatus(w http.ResponseWriter, req *http.Request) {
