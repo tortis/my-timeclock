@@ -1,0 +1,63 @@
+.detail {
+    padding-left: 1.5vw;
+    padding-right: 1.5vw;
+}
+
+.action-button {
+	cursor: pointer;
+	padding-left: 7px;
+}
+
+.caps {
+	font-size: 0.9em;
+	font-weight: 700;
+	color: #959595;
+	text-transform: uppercase;
+	letter-spacing: 1px;
+}
+
+.down-some {
+	margin-top: 13px;
+}
+
+.weeks {
+	margin: 20px 1.5vw 20px 1.5vw;
+}
+
+#details {
+	margin: 0;
+}
+
+#week-table td {
+	text-align: center;
+}
+
+#error {
+	width: 100%;
+	margin-top: 35vh;
+	text-align: center;
+	font-size: 150%;
+	font-family: sans-serif;
+}
+
+.err {
+	background-color: red;
+}
+
+.shift {
+	transition: 0.25s;
+	border-top: 0;
+}
+
+.input-time {
+	padding-top: 0;
+	padding-bottom: 0;
+	margin-top: 0;
+	margin-bottom: 0;
+	height: 20px;
+	color: black;
+}
+
+#clk-btn {
+	margin: 5px 20px 20px 1.5vw;
+}
