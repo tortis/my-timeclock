@@ -1,56 +1,90 @@
 <html ng-app="mtcApp">
 <head>
     <title>My Timeclock</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
 	<link rel="stylesheet" type="text/css" href="css/timeclock.css">
     <script src="js/angular.min.js"></script>
-	<script src="js/date.js"></script>
+	<script src="js/moment.min.js"></script>
     <script src="js/controller.js"></script>
 </head>
 <body ng-controller="mtcCtrl">
-    <div id="main">
-        <table id="week-table" class="table" ng-show="week">
-            <tr><td>Sun</td><td>Mon</td><td>Tues</td><td>Wed<td>Thurs</td><td>Fri</td><td>Sat</td></tr>
-            <tr>
-                <td ng-repeat="day in week.days">
-                    {{day.hours.toFixed(1)}}
-                </td>
-            </tr>
-		</table>
+	<div id="main">
 		<div id="error" ng-show="error">
 			{{error}}
 		</div>
-		<button id="clk-btn" class="btn" ng-class="{true: 'btn-success', false: 'btn-danger'}[!status]" ng-click="status ? clockOut() : clockIn()">
-			{{status ? 'Clock Out' : 'Clock In'}}
-		</button>
-        <div id="details" class="row" ng-show="week">
+
+		<div class="panel panel-default weeks">
+			<div class="panel-heading">
+				<span><strong>Week of {{dateToDate(week.date)}}</strong></span>
+				<span class="pull-right caps">{{week.hours.toFixed(1)}} hours</span>
+			</div>
+        	<table id="week-table" class="table" ng-show="week">
+				<tr>
+					<td ng-repeat="dname in day_names">{{dname}}</td>
+				</tr>
+				<tr>
+					<td ng-repeat="day in week.days">
+						<span class="caps">{{day.hours.toFixed(1)}}</span>
+                	</td>
+            	</tr>
+			</table>
+		</div>
+		<div ng-hide="error" class="row weeks">
+			<div ng-click="previousWeek()" class="col-xs-4 text-center action-button">
+				<div class="down-some"><span class="glyphicon glyphicon-chevron-left"></span> Previous</div>
+			</div>
+			<div class="col-xs-4 text-center">
+				<button id="clk-btn" class="btn" ng-class='{"btn-danger":clock && current, "btn-success":!clock && current, "btn-primary":!current}' ng-click="current ? clock ? clockOut() : clockIn() : currentWeek()">
+					{{current ? clock ? 'Clock Out' : 'Clock In' : 'Current Week'}}
+				</button>
+			</div>
+			<div ng-click="nextWeek()" class="col-xs-4 text-center action-button">
+				<div class="down-some">Next <span class="glyphicon glyphicon-chevron-right"></span></div>
+			</div>
+		</div>
+        <div id="details" class="container-fluid" ng-show="week">
 			<div class="col-md-6 detail" ng-repeat="day in week.days">
 				<div class="panel panel-default">
                 	<div class="panel-heading">
-                	    {{day.name}}
-                	    <span class="pull-right">{{dateToDate(day.date)}}</span>
+						{{day.name}}
+						<span class="pull-right">
+							<span ng-click="startAdding(day)" class="glyphicon glyphicon-plus action-button" style="margin-right: 10px"></span>
+							{{dateToDate(day.date)}}
+						</span>
                 	</div>
                 	<div class="panel-content list-group">
-						<li class="list-group-item" ng-class="{active:shift.Active}" ng-repeat="shift in day.shifts">
+						<li class="list-group-item shift" ng-class="{active:shift.Active, err:shift.Error}" ng-repeat="shift in day.shifts">
 							<span ng-show="!shift.Editing">
-								{{dateToTime(shift.On*1000)}} &mdash; {{shift.Active ? "" : dateToTime(shift.Off*1000)}} ({{shiftHours(shift).toFixed(1)}})
+								{{dateToTime(shift.On)}} &mdash; {{shift.Active ? "" : dateToTime(shift.Off)}} (<span class="caps">{{shiftHours(shift).toFixed(1)}}</span>)
 							</span>
 							<span ng-show="shift.Editing">
-								<input ng-model="shift.non" type="text" class="time ui-timepicker-input" autocomplete="off" value="{{dateToTime(shift.On*1000)}}">
+								<input ng-enter="modifyShift(shift, shift.non, shift.noff)" ng-model="shift.non" class="input-time"  type="time" autocomplete="off">
 								&mdash;
-								<input ng-model="shift.noff" ng-show="!shift.Active" type="text" class="time ui-timepicker-input" autocomplete="off" value="{{dateToTime(shift.Off*1000)}}">
+								<input ng-enter="modifyShift(shift, shift.non, shift.noff)" ng-model="shift.noff" class="input-time" ng-show="!shift.Active" type="time" autocomplete="off">
 							</span>
 							<span ng-show="!shift.Editing" class="pull-right action-buttons">
 								<span ng-click="startEdit(shift)" class="glyphicon glyphicon-edit action-button"></span>
 								<span ng-click="deleteShift(shift)" class="glyphicon glyphicon-trash action-button"></span>
 							</span>
 							<span ng-show="shift.Editing" class="pull-right action-buttons">
-								<span ng-click="modifyShift(shift)" class="glyphicon glyphicon-ok action-button"></span>
+								<span ng-click="modifyShift(shift, shift.non, shift.noff)" class="glyphicon glyphicon-ok action-button"></span>
 								<span ng-click="shift.Editing = false" class="glyphicon glyphicon-remove action-button"></span>
 							</span>
                 	    </li>
-						<li class="list-group-item" ng-hide="day.shifts">
+						<li class="list-group-item" ng-show="!day.shifts && !day.Adding">
 							<i>No Shifts</i>
+						</li>
+						<li class="list-group-item shift" ng-show="day.Adding">
+							<span>
+								<input ng-enter="createShift(day, day.new_on, day.new_off)" ng-model="day.new_on" class="input-time" type="time" autocomplete="off">
+								&mdash;
+								<input ng-enter="createShift(day, day.new_on, day.new_off)" ng-model="day.new_off" class="input-time"  type="time" autocomplete="off">
+							</span>
+							<span class="pull-right action-button">
+								<span ng-click="createShift(day, day.new_on, day.new_off)" class="glyphicon glyphicon-ok action-button"></span>
+								<span ng-click="day.Adding = false" class="glyphicon glyphicon-remove action-button"></span>
+							</span>
 						</li>
 					</div>
                 </div>

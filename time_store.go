@@ -129,11 +129,11 @@ func (ts *TimeStore) GetWeek(sunday int64) (*Week, error) {
 		week.Days[i].Date = time.Unix(day_start, 0)
 		for _, shift := range shifts {
 			week.Days[i].Hours += float64(shift.DayOverlap(day_start)) / 3600.0
-			week.Hours += week.Days[i].Hours
 			if shift.OnDay(day_start) {
 				week.Days[i].Shifts = append(week.Days[i].Shifts, shift)
 			}
 		}
+		week.Hours += week.Days[i].Hours
 	}
 	return week, nil
 }
@@ -174,11 +174,27 @@ func (ts *TimeStore) ModifyShift(id string, on, off int64) error {
 		return errors.New("The id is not valid.")
 	}
 	shift_id := bson.ObjectIdHex(id)
+	s, err := ts.GetShift(shift_id)
+	if err != nil {
+		return err
+	}
+	// Leave on unchanged
+	if on < 0 {
+		on = s.On
+	}
+	// Leave off unchanged
+	if off < 0 {
+		off = s.Off
+	}
+	// If the shift is active don't change off
+	if s.Active {
+		off = s.Off
+	}
 	if off < on {
 		return errors.New("Off time is before on time.")
 	}
 	shifts := ts.db_session.DB(ts.db_name).C(ts.col_name)
-	err := shifts.UpdateId(shift_id, bson.M{"$set": bson.M{"on": on, "off": off, "active": false}})
+	err = shifts.UpdateId(shift_id, bson.M{"$set": bson.M{"on": on, "off": off}})
 	if err != nil {
 		return err
 	}

@@ -142,17 +142,30 @@ func handleEditShift(w http.ResponseWriter, req *http.Request) {
 	hex_id := req.FormValue("id")
 	onString := req.FormValue("on")
 	offString := req.FormValue("off")
-	on, err := strconv.ParseInt(onString, 10, 64)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		fmt.Fprint(w, "Invalid on time")
-		return
+	var on, off int64
+	var err error
+	// If on was not provided, set to -1 to indicate no change
+	if onString == "" {
+		on = -1
+	} else {
+		on, err = strconv.ParseInt(onString, 10, 64)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			fmt.Fprint(w, "Invalid on time")
+			return
+		}
 	}
-	off, err := strconv.ParseInt(offString, 10, 64)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		fmt.Fprint(w, "Invalid off time")
-		return
+
+	// If off was not provided, set to -1 to indicate no change
+	if offString == "" {
+		off = -1
+	} else {
+		off, err = strconv.ParseInt(offString, 10, 64)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			fmt.Fprint(w, "Invalid off time")
+			return
+		}
 	}
 	err = timeStore.ModifyShift(hex_id, on, off)
 	if err != nil {
